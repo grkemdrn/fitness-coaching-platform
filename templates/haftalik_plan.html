@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Haftalık Plan Şablonu</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold">🦅 {{ ogrenci[0] }} - Haftalık Program Şablonu</h2>
+            <a href="{{ url_for('ana_sayfa') }}" class="btn btn-dark">Panele Dön</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}{% for category, message in messages %}<div class="alert alert-{{ category }}">{{ message }}</div>{% endfor %}{% endif %}
+        {% endwith %}
+
+        <div class="row">
+            {% for g in hafta %}
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between">
+                        {{ g }} Günü
+                    </div>
+                    <div class="card-body bg-light">
+                        
+                        <!-- Listeleme Bölümü -->
+                        <div class="mb-3">
+                            <h6 class="text-primary fw-bold">🏋️‍♂️ Antrenmanlar:</h6>
+                            <ul class="list-unstyled mb-2">
+                                {% for a in antrenmanlar %}{% if a[0] == g %}
+                                <li class="badge bg-secondary mb-1 w-100 text-start text-wrap d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {{ a[1] }} {% if a[6] %} ✅{% endif %} ({{ a[2] }}x{{ a[3] }}) {% if a[4] %} | Kardiyo: {{ a[4] }}{% endif %}
+                                    </div>
+                                    <div class="d-flex gap-1 ms-2">
+                                        <!-- Düzenle Butonu -->
+                                        <button type="button" class="btn btn-sm btn-warning p-1" data-bs-toggle="modal" data-bs-target="#editAntModal{{ a[5] }}">✏️</button>
+                                        <!-- Sil Butonu -->
+                                        <form action="{{ url_for('plan_sil', tip='antrenman', item_id=a[5]) }}" method="POST" class="m-0">
+                                            <input type="hidden" name="ogrenci_id" value="{{ ogrenci_id }}">
+                                            <button type="submit" class="btn btn-sm btn-danger p-1" onclick="return confirm('Bu antrenmanı silmek istediğine emin misin?');">🗑️</button>
+                                        </form>
+                                    </div>
+                                </li>
+
+                                <!-- Antrenman Düzenleme Modalı -->
+                                <div class="modal fade" id="editAntModal{{ a[5] }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-warning">
+                                                <h5 class="modal-title fw-bold">Antrenman Düzenle</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ url_for('plan_duzenle', tip='antrenman', item_id=a[5]) }}" method="POST">
+                                                <div class="modal-body text-dark">
+                                                    <input type="hidden" name="ogrenci_id" value="{{ ogrenci_id }}">
+                                                    <input type="text" name="hareket" class="form-control mb-2" value="{{ a[1] }}" required>
+                                                    <div class="d-flex gap-2 mb-2">
+                                                        <input type="number" name="set_sayisi" class="form-control" value="{{ a[2] }}" required>
+                                                        <input type="number" name="tekrar" class="form-control" value="{{ a[3] }}" required>
+                                                    </div>
+                                                    <input type="text" name="kardiyo" class="form-control" value="{{ a[4] if a[4] else '' }}" placeholder="Kardiyo (Opsiyonel)">
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-primary w-100">Güncelle</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}{% endfor %}
+                            </ul>
+                            
+                            <h6 class="text-success fw-bold mt-3">🥗 Beslenme Programı:</h6>
+                            
+                            <!-- GÜNLÜK MAKRO TOPLAMA SAYAÇLARI -->
+                            {% set ns = namespace(kalori=0, protein=0, yag=0, karb=0, ogun_sayisi=0) %}
+                            
+                            <ul class="list-unstyled mb-2">
+                                {% for d in diyetler %}{% if d[0] == g %}
+                                
+                                <!-- Her öğünün değerlerini günlük toplama ekle -->
+                                {% set ns.kalori = ns.kalori + (d[3] or 0) %}
+                                {% set ns.protein = ns.protein + (d[4] or 0) %}
+                                {% set ns.yag = ns.yag + (d[5] or 0) %}
+                                {% set ns.karb = ns.karb + (d[6] or 0) %}
+                                {% set ns.ogun_sayisi = ns.ogun_sayisi + 1 %}
+                                
+                                <li class="badge bg-success mb-1 w-100 text-start text-wrap d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ d[1] }}:</strong> {% if d[8] %} ✅{% endif %} {{ d[2] }} <br>
+                                        <small class="text-light">{{ d[3] }} kcal | {{ d[4] }}g Protein | {{ d[5] }}g Yağ | {{ d[6] }}g Karb</small>
+                                    </div>
+                                    <div class="d-flex gap-1 ms-2 align-items-start">
+                                        <!-- Düzenle Butonu -->
+                                        <button type="button" class="btn btn-sm btn-warning p-1" data-bs-toggle="modal" data-bs-target="#editDiyetModal{{ d[7] }}">✏️</button>
+                                        <!-- Sil Butonu -->
+                                        <form action="{{ url_for('plan_sil', tip='diyet', item_id=d[7]) }}" method="POST" class="m-0">
+                                            <input type="hidden" name="ogrenci_id" value="{{ ogrenci_id }}">
+                                            <button type="submit" class="btn btn-sm btn-danger p-1" onclick="return confirm('Bu öğünü silmek istediğine emin misin?');">🗑️</button>
+                                        </form>
+                                    </div>
+                                </li>
+
+                                <!-- Diyet Düzenleme Modalı -->
+                                <div class="modal fade" id="editDiyetModal{{ d[7] }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-warning">
+                                                <h5 class="modal-title fw-bold">Öğün Düzenle</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form action="{{ url_for('plan_duzenle', tip='diyet', item_id=d[7]) }}" method="POST">
+                                                <div class="modal-body text-dark">
+                                                    <input type="hidden" name="ogrenci_id" value="{{ ogrenci_id }}">
+                                                    <input type="text" name="ogun_adi" class="form-control mb-2" value="{{ d[1] }}" required>
+                                                    <textarea name="icerik" class="form-control mb-2" rows="2" required>{{ d[2] }}</textarea>
+                                                    <div class="row g-2">
+                                                        <div class="col-3"><label class="small text-muted">Kalori</label><input type="number" name="kalori" class="form-control form-control-sm" value="{{ d[3] }}"></div>
+                                                        <div class="col-3"><label class="small text-muted">Protein</label><input type="number" name="protein" class="form-control form-control-sm" value="{{ d[4] }}"></div>
+                                                        <div class="col-3"><label class="small text-muted">Yağ</label><input type="number" name="yag" class="form-control form-control-sm" value="{{ d[5] }}"></div>
+                                                        <div class="col-3"><label class="small text-muted">Karb.</label><input type="number" name="karbonhidrat" class="form-control form-control-sm" value="{{ d[6] }}"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="submit" class="btn btn-primary w-100">Makroları ve İçeriği Güncelle</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}{% endfor %}
+                            </ul>
+
+                            <!-- GÜNLÜK TOPLAM MAKRO ÖZET ÇUBUĞU -->
+                            {% if ns.ogun_sayisi > 0 %}
+                            <div class="p-2 bg-white border border-success border-opacity-50 rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap small">
+                                <span class="fw-bold text-dark">📊 Günlük Toplam:</span>
+                                <div>
+                                    <span class="badge bg-dark">{{ ns.kalori }} kcal</span>
+                                    <span class="badge bg-primary">{{ ns.protein }}g P</span>
+                                    <span class="badge bg-warning text-dark">{{ ns.yag }}g Y</span>
+                                    <span class="badge bg-info text-dark">{{ ns.karb }}g K</span>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <hr>
+                        <!-- Hızlı Ekleme Formları (Burada değişiklik yok, aynen kalıyor) -->
+                        <div class="accordion" id="acc-{{ g }}">
+                            <!-- Antrenman Ekle -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#ant-{{ g }}">
+                                        + Antrenman Ekle
+                                    </button>
+                                </h2>
+                                <div id="ant-{{ g }}" class="accordion-collapse collapse" data-bs-parent="#acc-{{ g }}">
+                                    <div class="accordion-body">
+                                        <form method="POST">
+                                            <input type="hidden" name="form_tipi" value="antrenman"><input type="hidden" name="gun" value="{{ g }}">
+                                            <input type="text" name="hareket" class="form-control form-control-sm mb-1" placeholder="Hareket (Sadece kardiyo ise boş bırak)">
+                                            <div class="d-flex gap-1 mb-1">
+                                                <input type="number" name="set_sayisi" class="form-control form-control-sm" placeholder="Set">
+                                                <input type="number" name="tekrar" class="form-control form-control-sm" placeholder="Tekrar">
+                                            </div>
+                                            <input type="text" name="kardiyo" class="form-control form-control-sm mb-2" placeholder="Kardiyo (Opsiyonel)">
+                                            <button type="submit" class="btn btn-sm btn-primary w-100">Ekle</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Diyet Ekle (AI DESTEKLİ) -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header">
+                                    <button class="accordion-button collapsed py-2 text-success fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#diy-{{ g }}">
+                                        ✨ Yapay Zeka ile Öğün Ekle
+                                    </button>
+                                </h2>
+                                <div id="diy-{{ g }}" class="accordion-collapse collapse" data-bs-parent="#acc-{{ g }}">
+                                    <div class="accordion-body">
+                                        <form method="POST">
+                                            <input type="hidden" name="form_tipi" value="diyet_ai">
+                                            <input type="hidden" name="gun" value="{{ g }}">
+                                            <input type="text" name="ogun_adi" class="form-control form-control-sm mb-1" placeholder="Öğün Adı (Örn: Kahvaltı)" required>
+                                            
+                                            <label class="small text-muted mb-1">Öğün İçeriği (AI Hesaplayacak):</label>
+                                            <textarea name="icerik" class="form-control form-control-sm mb-2" rows="2" placeholder="Örn: 3 tam yumurta, 50gr yulaf..." required></textarea>
+                                            
+                                            <button type="submit" class="btn btn-sm btn-success w-100 fw-bold">✨ AI ile Makroları Hesapla & Ekle</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

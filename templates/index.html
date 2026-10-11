@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness & Gelişim Takip</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    
+    <div class="container mt-5" style="max-width: 600px;">
+        <h2 class="text-center mb-4">🏋️‍♂️ Fitness & Gelişim Paneli</h2>
+        
+        <!-- ANTRENMAN EKLEME FORMU -->
+        <div class="card p-4 shadow-sm mb-4">
+            <h4 class="mb-3">Yeni Antrenman Logu Ekle</h4>
+            <form action="/" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Hareket Adı</label>
+                    <input type="text" class="form-control" name="hareket" placeholder="Örn: Bench Press" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Ağırlık (kg)</label>
+                        <input type="number" class="form-control" name="agirlik" placeholder="Örn: 80" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Tekrar Sayısı</label>
+                        <input type="number" class="form-control" name="tekrar" placeholder="Örn: 10" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Antrenmanı Kaydet</button>
+            </form>
+        </div>
+
+        <!-- EKLENEN ANTRENMANLARI LİSTELEME KISMI -->
+        {% if antrenmanlar %}
+        <div class="card p-4 shadow-sm border-success">
+            <h4 class="mb-3 text-success">Geçmiş Antrenmanlar</h4>
+            <ul class="list-group">
+                {% for antrenman in antrenmanlar %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <strong>{{ antrenman.hareket }}</strong>
+                    <span class="badge bg-secondary rounded-pill">{{ antrenman.agirlik }} kg x {{ antrenman.tekrar }} tekrar</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <!-- GRAFİK GÖSTERİM KISMI -->
+        {% if grafik_goster %}
+        <div class="card p-4 shadow-sm border-info mt-4">
+            <h4 class="mb-3 text-info">Veri Analizi & Gelişim Grafiği</h4>
+            <div class="text-center">
+                <!-- Flask'te static klasöründeki dosyalara url_for ile ulaşılır -->
+                <img src="{{ url_for('static', filename='gelisim_grafigi.png') }}" alt="Gelişim Grafiği" class="img-fluid rounded">
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

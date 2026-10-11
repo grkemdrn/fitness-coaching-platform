@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ ogrenci[0] }} - Detaylar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js Kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+    <div class="container mt-4 mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h3 class="fw-bold m-0">🦅 {{ ogrenci[0] }} - Öğrenci Takip & İletişim</h3>
+                <small class="text-muted">
+                    Kalan Soru Hakkı: <strong>{{ ogrenci[2] }}</strong> | Kalan Fotoğraf Hakkı: <strong>{{ ogrenci[3] }}</strong> 
+                    <em>(Her 7 günde bir otomatik yenilenir)</em>
+                </small>
+            </div>
+            <div class="d-flex gap-2">
+                <form action="{{ url_for('haklari_yenile', ogrenci_id=ogrenci_id) }}" method="POST" class="m-0">
+                    <button type="submit" class="btn btn-success fw-bold" onclick="return confirm('Öğrencinin soru (3) ve fotoğraf (1) haklarını şimdi yenilemek istiyor musunuz?');">
+                        🔄 Hakları Şimdi Yenile
+                    </button>
+                </form>
+                <a href="{{ url_for('ana_sayfa') }}" class="btn btn-dark">Panele Dön</a>
+            </div>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} shadow-sm">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- 1. SATIR: Canlı Sohbet ve Form Fotoğrafları -->
+        <div class="row">
+            <!-- Sol Sütun: Canlı Sohbet -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+                        <span>💬 Canlı Sohbet Paneli</span>
+                        
+                        {% if ogrenci[1] %}
+                            <form action="{{ url_for('sohbet_sonlandir', ogrenci_id=ogrenci_id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" class="btn btn-sm btn-danger fw-bold" onclick="return confirm('Sohbeti sonlandırmak istediğine emin misin? Öğrencinin bir sonraki yazışında soru hakkı düşecektir.');">Sohbeti Sonlandır</button>
+                            </form>
+                        {% else %}
+                            <span class="badge bg-secondary">Sohbet Kapalı / Beklemede</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body d-flex flex-column" style="height: 400px; background-color: #f8f9fa;">
+                        
+                        <!-- Mesaj Geçmişi -->
+                        <div class="flex-grow-1 overflow-auto mb-3 px-2">
+                            {% if mesajlar %}
+                                {% for m in mesajlar %}
+                                    {% if m[1] == 'ogrenci' %}
+                                        <div class="text-start mb-2">
+                                            <div class="d-inline-block bg-primary text-white p-2 rounded w-75">
+                                                <small class="fw-bold text-light">Öğrenci:</small>
+                                                <p class="mb-0">{{ m[0] }}</p>
+                                                <small class="text-white-50" style="font-size: 0.7em;">{{ m[2].strftime('%H:%M') }}</small>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="text-end mb-2">
+                                            <div class="d-inline-block bg-warning text-dark p-2 rounded w-75 text-start">
+                                                <small class="fw-bold">Antrenör:</small>
+                                                <p class="mb-0">{{ m[0] }}</p>
+                                                <small class="text-muted" style="font-size: 0.7em;">{{ m[2].strftime('%H:%M') }}</small>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center mt-5">Sohbet geçmişi yok.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Antrenör Mesaj Gönderme Formu -->
+                        <form method="POST" class="mt-auto">
+                            <div class="input-group shadow-sm">
+                                <input type="text" name="mesaj" class="form-control" placeholder="Öğrenciye cevap yaz..." required>
+                                <button class="btn btn-dark" type="submit">Gönder</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ Sütun: Form Fotoğrafları -->
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-warning text-dark fw-bold">📸 Form Fotoğrafları</div>
+                    <div class="card-body overflow-auto" style="max-height: 400px;">
+                        {% if fotograflar %}
+                            <div class="row">
+                                {% for f in fotograflar %}
+                                <div class="col-md-6 mb-3">
+                                    <div class="card shadow-sm">
+                                        <img src="{{ url_for('static', filename='uploads/' + f[0]) }}" class="card-img-top img-fluid">
+                                        <div class="card-footer p-2 text-center bg-dark text-white">
+                                            <small class="fw-bold">{{ f[1].strftime('%d-%m-%Y') }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-muted text-center my-5">Öğrenci henüz fotoğraf yüklemedi.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. SATIR: Sadece Kilo Değişim Grafiği -->
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white fw-bold">
+                        📈 Öğrencinin Kilo Değişim Grafiği
+                    </div>
+                    <div class="card-body">
+                        {% if kilo_degerler %}
+                            <canvas id="kiloGrafikHoca" height="100"></canvas>
+                        {% else %}
+                            <p class="text-muted text-center my-4">Öğrenci henüz kilo verisi girmedi.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Chart.js Grafik Çizim Kodu -->
+    {% if kilo_degerler %}
+    <script>
+        const ctx = document.getElementById('kiloGrafikHoca').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ kilo_tarihler | tojson }},
+                datasets: [{
+                    label: 'Kilo (kg)',
+                    data: {{ kilo_degerler | tojson }},
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#0d6efd',
+                    pointRadius: 5,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: false }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

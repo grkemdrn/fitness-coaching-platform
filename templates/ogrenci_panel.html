@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fitness - Premium Koçluk</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js Kütüphanesi -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-light">
+
+    <!-- Premium Navbar -->
+    <nav class="navbar navbar-dark bg-dark mb-4 shadow">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1 fw-bold text-uppercase" style="letter-spacing: 1px;">🦅 Fitness Uzaktan Eğitim</span>
+            <div class="d-flex align-items-center">
+                <span class="text-light me-3">Hoş geldin, {{ ogrenci_adi }}</span>
+                <span class="badge bg-warning text-dark me-3">{{ paket }} Paket</span>
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Çıkış Yap</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Flash Mesajları -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} shadow-sm">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- SOL SÜTUN: Haftalık Antrenman ve Diyet Planı -->
+            <div class="col-md-7 mb-4">
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0">📋 Haftalık Premium Planın</h5>
+                    </div>
+                    <div class="card-body bg-light p-3">
+                        
+                        <!-- Pazartesi'den Pazar'a haftalık döngü -->
+                        {% for g in hafta %}
+                            <div class="card mb-4 border-secondary shadow-sm">
+                                <div class="card-header bg-secondary text-white fw-bold">
+                                    📅 {{ g }}
+                                </div>
+                                <div class="card-body">
+                                    
+                                    <!-- O Günün Antrenmanları -->
+                                    <h6 class="text-primary fw-bold">🏋️‍♂️ Antrenman Programı</h6>
+                                    <ul class="list-group mb-4">
+                                        {% set ns = namespace(bulundu=false) %}
+                                        {% for a in antrenmanlar %}
+                                            {% if a[0] == g %}
+                                                {% set ns.bulundu = true %}
+                                                <li class="list-group-item border-start {% if a[6] %}border-success bg-success bg-opacity-10{% else %}border-primary{% endif %} border-4 mb-2 shadow-sm rounded d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        {% if a[4] %}
+                                                            <span class="badge bg-info text-dark mb-1">🏃‍♂️ Kardiyo: {{ a[4] }}</span><br>
+                                                        {% endif %}
+                                                        <strong class="fs-6 {% if a[6] %}text-decoration-line-through text-muted{% endif %}">{{ a[1] }}</strong>
+                                                        {% if a[2] > 0 %}
+                                                            <span class="badge bg-dark rounded-pill ms-2">{{ a[2] }} Set x {{ a[3] }} Tekrar</span>
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                    <!-- Tamamlandı (Check) Butonu -->
+                                                    <form action="{{ url_for('gorev_durum', tip='antrenman', item_id=a[5]) }}" method="POST" class="m-0 ms-2">
+                                                        <button type="submit" class="btn btn-sm {% if a[6] %}btn-success{% else %}btn-outline-secondary{% endif %} fw-bold">
+                                                            {% if a[6] %}✅ Tamamlandı{% else %}⬜ Tamamla{% endif %}
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if not ns.bulundu %}
+                                            <p class="text-muted small mb-0">Bugün için antrenman yok (Dinlenme).</p>
+                                        {% endif %}
+                                    </ul>
+
+                                    <!-- O Günün Diyeti -->
+                                    <h6 class="text-success fw-bold">🥗 Beslenme Programı</h6>
+                                    {% set ns_diyet = namespace(bulundu=false, kalori=0, protein=0, yag=0, karb=0) %}
+                                    <ul class="list-group mb-2">
+                                        {% for d in diyetler %}
+                                            {% if d[0] == g %}
+                                                {% set ns_diyet.bulundu = true %}
+                                                {% set ns_diyet.kalori = ns_diyet.kalori + (d[3] or 0) %}
+                                                {% set ns_diyet.protein = ns_diyet.protein + (d[4] or 0) %}
+                                                {% set ns_diyet.yag = ns_diyet.yag + (d[5] or 0) %}
+                                                {% set ns_diyet.karb = ns_diyet.karb + (d[6] or 0) %}
+                                                
+                                                <li class="list-group-item border-start border-success border-4 d-flex justify-content-between align-items-center mb-1 shadow-sm {% if d[8] %}bg-success bg-opacity-10{% endif %}">
+                                                    <div>
+                                                        <strong class="text-dark {% if d[8] %}text-decoration-line-through text-muted{% endif %}">{{ d[1] }}:</strong> 
+                                                        <span class="text-muted small {% if d[8] %}text-decoration-line-through{% endif %}">{{ d[2] }}</span><br>
+                                                        <span class="badge bg-success bg-opacity-75 text-white mt-1">{{ d[3] }} kcal | {{ d[4] }}g P | {{ d[5] }}g Y | {{ d[6] }}g K</span>
+                                                    </div>
+                                                    
+                                                    <!-- Öğün Tamamlandı (Check) Butonu -->
+                                                    <form action="{{ url_for('gorev_durum', tip='diyet', item_id=d[7]) }}" method="POST" class="m-0 ms-2">
+                                                        <button type="submit" class="btn btn-sm {% if d[8] %}btn-success{% else %}btn-outline-success{% endif %}">
+                                                            {% if d[8] %}✅ Yendi{% else %}⬜ Ye{% endif %}
+                                                        </button>
+                                                    </form>
+                                                </li>
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if not ns_diyet.bulundu %}
+                                            <p class="text-muted small mb-0">Bugün için özel bir öğün atanmadı.</p>
+                                        {% endif %}
+                                    </ul>
+
+                                    <!-- Öğrenci İçin Günlük Makro Özeti -->
+                                    {% if ns_diyet.bulundu %}
+                                    <div class="p-2 bg-white border border-success border-opacity-50 rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap small mt-2">
+                                        <span class="fw-bold text-dark">📊 Günlük Hedef Toplam:</span>
+                                        <div>
+                                            <span class="badge bg-dark">{{ ns_diyet.kalori }} kcal</span>
+                                            <span class="badge bg-primary">{{ ns_diyet.protein }}g P</span>
+                                            <span class="badge bg-warning text-dark">{{ ns_diyet.yag }}g Y</span>
+                                            <span class="badge bg-info text-dark">{{ ns_diyet.karb }}g K</span>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+
+                                </div>
+                            </div>
+                        {% endfor %}
+                        
+                    </div>
+                </div>
+            </div>
+
+            <!-- SAĞ SÜTUN: Grafik, İletişim ve Fotoğraf -->
+            <div class="col-md-5 mb-4">
+                
+                <!-- Kilo Takip ve Gelişim Grafiği Paneli -->
+                <div class="card shadow-sm border-0 mb-4 bg-white">
+                    <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
+                        <span>📈 Fiziksel Gelişim & Kilo Takibi</span>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" class="mb-3">
+                            <input type="hidden" name="form_tipi" value="kilo_ekle">
+                            <div class="input-group input-group-sm">
+                                <input type="number" step="0.1" name="kilo" class="form-control" placeholder="Güncel Kilonuz (Örn: 82.5)" required>
+                                <button type="submit" class="btn btn-primary fw-bold">+ Kilo Kaydet</button>
+                            </div>
+                        </form>
+                        
+                        {% if kilo_degerler %}
+                            <canvas id="kiloGrafik" height="180"></canvas>
+                        {% else %}
+                            <p class="text-muted small text-center mb-0">Grafiğin oluşması için ilk kilo kaydınızı girin.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Chat Paneli -->
+                <div class="card shadow-sm border-0 mb-4 bg-white">
+                    <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
+                        <span>📞 Antrenör ile Sohbet</span>
+                        <span class="badge bg-dark">
+                            {% if aktif_sohbet %}
+                                🟢 Sohbet Açık (Kotadan Düşmez)
+                            {% else %}
+                                Kalan Soru: {{ mesaj_hakki }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="p-3 overflow-auto" style="height: 350px; background-color: #f8f9fa; display: flex; flex-direction: column;">
+                        {% if mesajlar %}
+                            {% for m in mesajlar %}
+                                {% if m[1] == 'ogrenci' %}
+                                    <div class="text-end mb-2">
+                                        <div class="d-inline-block bg-primary text-white p-2 rounded text-start" style="max-width: 80%;">
+                                            {{ m[0] }} <br> <small class="text-white-50" style="font-size:0.7em;">{{ m[2].strftime('%H:%M') }}</small>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <div class="text-start mb-2">
+                                        <div class="d-inline-block bg-warning text-dark p-2 rounded" style="max-width: 80%;">
+                                            <strong>Antrenör:</strong> <br> {{ m[0] }} <br> <small class="text-muted" style="font-size:0.7em;">{{ m[2].strftime('%H:%M') }}</small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center mt-4 text-muted">
+                                <small>Antrenör ile iletişime geçmek için ilk mesajını gönder.<br><em>Not: Seri mesajlaşmalardan kota düşmez!</em></small>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="p-3 border-top bg-white">
+                        <form method="POST">
+                            <input type="hidden" name="form_tipi" value="mesaj_gonder">
+                            <div class="input-group">
+                                <input type="text" name="mesaj" class="form-control" placeholder="Mesajını yaz..." required {% if not aktif_sohbet and mesaj_hakki <= 0 %}disabled{% endif %}>
+                                <button type="submit" class="btn btn-dark" {% if not aktif_sohbet and mesaj_hakki <= 0 %}disabled{% endif %}>Gönder</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Fotoğraf Yükleme Paneli -->
+                <div class="card shadow-sm border-0 mb-4 bg-white">
+                    <div class="card-header bg-dark text-white fw-bold">
+                        📸 Haftalık Form Kontrolü
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-1">
+                            <small class="fw-bold">Kalan Form Fotoğrafı Hakkı</small>
+                            <small class="badge bg-warning text-dark">{{ foto_hakki }} Kaldı</small>
+                        </div>
+                        <div class="progress mb-3" style="height: 10px;">
+                            <div class="progress-bar bg-dark" style="width: {{ (foto_hakki/1)*100 }}%"></div>
+                        </div>
+                        
+                        <form method="POST" enctype="multipart/form-data">
+                            <input type="hidden" name="form_tipi" value="foto_yukle">
+                            <div class="input-group">
+                                <input type="file" name="foto" class="form-control" accept="image/*" required {% if foto_hakki <= 0 %}disabled{% endif %}>
+                                <button type="submit" class="btn btn-dark" {% if foto_hakki <= 0 %}disabled{% endif %}>Yükle</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Grafik Çizim Kodu -->
+    {% if kilo_degerler %}
+    <script>
+        const ctx = document.getElementById('kiloGrafik').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: {{ kilo_tarihler | tojson }},
+                datasets: [{
+                    label: 'Kilo Değişimi (kg)',
+                    data: {{ kilo_degerler | tojson }},
+                    borderColor: '#0d6efd',
+                    backgroundColor: 'rgba(13, 110, 253, 0.15)',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#0d6efd',
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: false }
+                }
+            }
+        });
+    </script>
+    {% endif %}
+</body>
+</html>
