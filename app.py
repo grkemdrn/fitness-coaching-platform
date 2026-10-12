@@ -7,26 +7,17 @@ import psycopg2
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from groq import Groq
-
-# Gizli .env dosyasındaki şifreleri otomatik yükler
 load_dotenv()
-
-# --- YAPAY ZEKA (AI) AYARLARI ---
-# Şifreyi doğrudan .env dosyasından güvenli bir şekilde çeker
 ai_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "super_gizli_anahtar")
-
-# --- FOTOĞRAF YÜKLEME AYARLARI ---
 UPLOAD_FOLDER = 'static/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
-
-# --- BULUT UYUMLU VERİTABANI BAĞLANTISI ---
 def get_db_connection():
     DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://postgres:135795@127.0.0.1/postgres")
     return psycopg2.connect(DATABASE_URL)
@@ -130,7 +121,6 @@ def update_database():
     except: conn.rollback()
     try: cursor.execute("ALTER TABLE diyet_planlari ADD COLUMN tamamlandi BOOLEAN DEFAULT FALSE;"); conn.commit()
     except: conn.rollback()
-    # YENİ: Haftalık hak yenilenme tarihi sütunu
     try: cursor.execute("ALTER TABLE fit_users ADD COLUMN hak_yenilenme_tarihi TIMESTAMP DEFAULT CURRENT_TIMESTAMP;"); conn.commit()
     except: conn.rollback()
     
@@ -138,8 +128,6 @@ def update_database():
     conn.close()
 
 update_database()
-
-# --- KAYIT VE GİRİŞ İŞLEMLERİ ---
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -187,8 +175,6 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("login"))
-
-# --- ANA SAYFA (ANTRENÖR VE ÖĞRENCİ YÖNLENDİRMESİ) ---
 @app.route("/", methods=["GET", "POST"])
 def ana_sayfa():
     if "user_id" not in session:
@@ -207,8 +193,6 @@ def ana_sayfa():
         conn = get_db_connection()
         cursor = conn.cursor()
         ogrenci_id = session.get("user_id")
-
-        # YENİ: OTOMATİK HAFTALIK YENİLEME KONTROLÜ (7 gün geçtiyse hakları 3 ve 1 yap)
         cursor.execute("""
             UPDATE fit_users 
             SET mesaj_hakki = 3, foto_hakki = 1, hak_yenilenme_tarihi = CURRENT_TIMESTAMP 
@@ -281,8 +265,6 @@ def ana_sayfa():
                                ogrenci_adi=kullanici_adi, paket=paket, mesaj_hakki=mesaj_hakki, foto_hakki=foto_hakki, aktif_sohbet=aktif_sohbet,
                                antrenmanlar=antrenmanlar, diyetler=diyetler, mesajlar=mesajlar, hafta=hafta,
                                kilo_tarihler=kilo_tarihler, kilo_degerler=kilo_degerler)
-
-# --- ÖĞRENCİ GÖREV TAMAMLAMA (CHECK-OFF) ROTASI ---
 @app.route("/gorev_durum/<tip>/<int:item_id>", methods=["POST"])
 def gorev_durum(tip, item_id):
     if "user_id" not in session: return redirect(url_for("login"))
@@ -299,8 +281,6 @@ def gorev_durum(tip, item_id):
     cursor.close()
     conn.close()
     return redirect(url_for("ana_sayfa"))
-
-# --- ANTRENÖR: HAFTALIK PLAN YAZMA & AI BAĞLANTISI ---
 @app.route("/haftalik_plan/<int:ogrenci_id>", methods=["GET", "POST"])
 def haftalik_plan(ogrenci_id):
     if session.get("rol") != "antrenor": return redirect(url_for("ana_sayfa"))
@@ -385,8 +365,6 @@ def haftalik_plan(ogrenci_id):
     
     hafta = ["Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi", "Pazar"]
     return render_template("haftalik_plan.html", ogrenci=ogrenci, hafta=hafta, antrenmanlar=antrenmanlar, diyetler=diyetler, ogrenci_id=ogrenci_id)
-
-# --- ANTRENÖR: ÖĞRENCİ DETAY, GELEN KUTUSU VE GRAFİK ---
 @app.route("/ogrenci_detay/<int:ogrenci_id>", methods=["GET", "POST"])
 def ogrenci_detay(ogrenci_id):
     if session.get("rol") != "antrenor": return redirect(url_for("ana_sayfa"))
@@ -397,8 +375,6 @@ def ogrenci_detay(ogrenci_id):
         cursor.execute("INSERT INTO mesajlar (ogrenci_id, mesaj, gonderen) VALUES (%s, %s, 'antrenor')", (ogrenci_id, mesaj))
         conn.commit()
         return redirect(url_for("ogrenci_detay", ogrenci_id=ogrenci_id))
-    
-    # Öğrencinin kalan haklarını da çekiyoruz (ogrenci[2] = mesaj_hakki, ogrenci[3] = foto_hakki)
     cursor.execute("SELECT kullanici_adi, aktif_sohbet, mesaj_hakki, foto_hakki FROM fit_users WHERE id = %s", (ogrenci_id,))
     ogrenci = cursor.fetchone()
     cursor.execute("SELECT mesaj, gonderen, tarih FROM mesajlar WHERE ogrenci_id = %s ORDER BY id ASC", (ogrenci_id,))
@@ -415,8 +391,6 @@ def ogrenci_detay(ogrenci_id):
     return render_template("ogrenci_detay.html", 
                            ogrenci=ogrenci, mesajlar=mesajlar, fotograflar=fotograflar, ogrenci_id=ogrenci_id,
                            kilo_tarihler=kilo_tarihler, kilo_degerler=kilo_degerler)
-
-# --- YENİ: ANTRENÖR MANUEL HAK SIFIRLAMA / YENİLEME ROTASI ---
 @app.route("/haklari_yenile/<int:ogrenci_id>", methods=["POST"])
 def haklari_yenile(ogrenci_id):
     if session.get("rol") != "antrenor": return redirect(url_for("ana_sayfa"))
@@ -429,8 +403,6 @@ def haklari_yenile(ogrenci_id):
     conn.commit(); cursor.close(); conn.close()
     flash("Öğrencinin haftalık soru (3) ve fotoğraf (1) hakları başarıyla yenilendi!", "success")
     return redirect(url_for("ogrenci_detay", ogrenci_id=ogrenci_id))
-
-# --- ANTRENÖR: SOHBETİ SONLANDIRMA ---
 @app.route("/sohbet_sonlandir/<int:ogrenci_id>", methods=["POST"])
 def sohbet_sonlandir(ogrenci_id):
     if session.get("rol") != "antrenor": return redirect(url_for("ana_sayfa"))
@@ -439,8 +411,6 @@ def sohbet_sonlandir(ogrenci_id):
     conn.commit(); cursor.close(); conn.close()
     flash("Sohbet başarıyla sonlandırıldı. Öğrencinin bir sonraki mesajında hesabından 1 soru hakkı düşülecektir.", "info")
     return redirect(url_for("ogrenci_detay", ogrenci_id=ogrenci_id))
-
-# --- ANTRENÖR: ÖĞRENCİ YUMUŞAK SİLME ---
 @app.route("/ogrenci_sil/<int:ogrenci_id>", methods=["POST"])
 def ogrenci_sil(ogrenci_id):
     conn = get_db_connection()
@@ -451,8 +421,6 @@ def ogrenci_sil(ogrenci_id):
     conn.close()
     flash("Öğrenci çöp kutusuna taşındı. 7 gün içinde geri alabilirsiniz.", "warning")
     return redirect(url_for("ana_sayfa"))
-
-# --- ANTRENÖR: PLAN SİLME ---
 @app.route("/plan_sil/<tip>/<int:item_id>", methods=["POST"])
 def plan_sil(tip, item_id):
     if session.get("rol") != "antrenor": return redirect(url_for("ana_sayfa"))
@@ -470,8 +438,6 @@ def plan_sil(tip, item_id):
     conn.close()
     flash("Kayıt başarıyla silindi!", "info")
     return redirect(url_for("haftalik_plan", ogrenci_id=ogrenci_id))
-
-# --- ANTRENÖR: PLAN DÜZENLEME ---
 @app.route("/plan_duzenle/<tip>/<int:item_id>", methods=["POST"])
 def plan_duzenle(tip, item_id):
     if session.get("rol") != "antrenor": return redirect(url_for("ana_sayfa"))
@@ -501,8 +467,6 @@ def plan_duzenle(tip, item_id):
     cursor.close()
     conn.close()
     return redirect(url_for("haftalik_plan", ogrenci_id=ogrenci_id))
-
-# --- ANTRENÖR: ÇÖP KUTUSU VE 7 GÜN TEMİZLİĞİ ---
 @app.route("/cop_kutusu")
 def cop_kutusu():
     if session.get("rol") != "antrenor": return redirect(url_for("ana_sayfa"))
@@ -519,8 +483,6 @@ def cop_kutusu():
     cursor.close()
     conn.close()
     return render_template("cop_kutusu.html", ogrenciler=silinen_ogrenciler)
-
-# --- ANTRENÖR: ÖĞRENCİ KURTARMA ---
 @app.route("/ogrenci_kurtar/<int:ogrenci_id>", methods=["POST"])
 def ogrenci_kurtar(ogrenci_id):
     conn = get_db_connection()

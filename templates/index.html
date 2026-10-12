@@ -11,7 +11,7 @@
     <div class="container mt-5" style="max-width: 600px;">
         <h2 class="text-center mb-4">🏋️‍♂️ Fitness & Gelişim Paneli</h2>
         
-        <!-- ANTRENMAN EKLEME FORMU -->
+        fitness
         <div class="card p-4 shadow-sm mb-4">
             <h4 class="mb-3">Yeni Antrenman Logu Ekle</h4>
             <form action="/" method="POST">
@@ -33,7 +33,7 @@
             </form>
         </div>
 
-        <!-- EKLENEN ANTRENMANLARI LİSTELEME KISMI -->
+        fitness
         {% if antrenmanlar %}
         <div class="card p-4 shadow-sm border-success">
             <h4 class="mb-3 text-success">Geçmiş Antrenmanlar</h4>
@@ -47,12 +47,12 @@
             </ul>
         </div>
         {% endif %}
-        <!-- GRAFİK GÖSTERİM KISMI -->
+        fitness
         {% if grafik_goster %}
         <div class="card p-4 shadow-sm border-info mt-4">
             <h4 class="mb-3 text-info">Veri Analizi & Gelişim Grafiği</h4>
             <div class="text-center">
-                <!-- Flask'te static klasöründeki dosyalara url_for ile ulaşılır -->
+                fitness
                 <img src="{{ url_for('static', filename='gelisim_grafigi.png') }}" alt="Gelişim Grafiği" class="img-fluid rounded">
             </div>
         </div>

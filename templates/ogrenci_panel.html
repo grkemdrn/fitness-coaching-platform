@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <title>Fitness - Premium Koçluk</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Chart.js Kütüphanesi -->
+    fitness
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-light">
 
-    <!-- Premium Navbar -->
+    fitness
     <nav class="navbar navbar-dark bg-dark mb-4 shadow">
         <div class="container">
             <span class="navbar-brand mb-0 h1 fw-bold text-uppercase" style="letter-spacing: 1px;">🦅 Fitness Uzaktan Eğitim</span>
@@ -22,7 +22,7 @@
     </nav>
 
     <div class="container">
-        <!-- Flash Mesajları -->
+        fitness
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
@@ -32,7 +32,7 @@
         {% endwith %}
 
         <div class="row">
-            <!-- SOL SÜTUN: Haftalık Antrenman ve Diyet Planı -->
+            fitness
             <div class="col-md-7 mb-4">
                 <div class="card shadow-sm border-0 mb-4">
                     <div class="card-header bg-dark text-white">
@@ -40,7 +40,7 @@
                     </div>
                     <div class="card-body bg-light p-3">
                         
-                        <!-- Pazartesi'den Pazar'a haftalık döngü -->
+                        fitness
                         {% for g in hafta %}
                             <div class="card mb-4 border-secondary shadow-sm">
                                 <div class="card-header bg-secondary text-white fw-bold">
@@ -48,7 +48,7 @@
                                 </div>
                                 <div class="card-body">
                                     
-                                    <!-- O Günün Antrenmanları -->
+                                    fitness
                                     <h6 class="text-primary fw-bold">🏋️‍♂️ Antrenman Programı</h6>
                                     <ul class="list-group mb-4">
                                         {% set ns = namespace(bulundu=false) %}
@@ -66,7 +66,7 @@
                                                         {% endif %}
                                                     </div>
                                                     
-                                                    <!-- Tamamlandı (Check) Butonu -->
+                                                    fitness
                                                     <form action="{{ url_for('gorev_durum', tip='antrenman', item_id=a[5]) }}" method="POST" class="m-0 ms-2">
                                                         <button type="submit" class="btn btn-sm {% if a[6] %}btn-success{% else %}btn-outline-secondary{% endif %} fw-bold">
                                                             {% if a[6] %}✅ Tamamlandı{% else %}⬜ Tamamla{% endif %}
@@ -80,7 +80,7 @@
                                         {% endif %}
                                     </ul>
 
-                                    <!-- O Günün Diyeti -->
+                                    fitness
                                     <h6 class="text-success fw-bold">🥗 Beslenme Programı</h6>
                                     {% set ns_diyet = namespace(bulundu=false, kalori=0, protein=0, yag=0, karb=0) %}
                                     <ul class="list-group mb-2">
@@ -99,7 +99,7 @@
                                                         <span class="badge bg-success bg-opacity-75 text-white mt-1">{{ d[3] }} kcal | {{ d[4] }}g P | {{ d[5] }}g Y | {{ d[6] }}g K</span>
                                                     </div>
                                                     
-                                                    <!-- Öğün Tamamlandı (Check) Butonu -->
+                                                    fitness
                                                     <form action="{{ url_for('gorev_durum', tip='diyet', item_id=d[7]) }}" method="POST" class="m-0 ms-2">
                                                         <button type="submit" class="btn btn-sm {% if d[8] %}btn-success{% else %}btn-outline-success{% endif %}">
                                                             {% if d[8] %}✅ Yendi{% else %}⬜ Ye{% endif %}
@@ -113,7 +113,7 @@
                                         {% endif %}
                                     </ul>
 
-                                    <!-- Öğrenci İçin Günlük Makro Özeti -->
+                                    fitness
                                     {% if ns_diyet.bulundu %}
                                     <div class="p-2 bg-white border border-success border-opacity-50 rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap small mt-2">
                                         <span class="fw-bold text-dark">📊 Günlük Hedef Toplam:</span>
@@ -134,10 +134,10 @@
                 </div>
             </div>
 
-            <!-- SAĞ SÜTUN: Grafik, İletişim ve Fotoğraf -->
+            fitness
             <div class="col-md-5 mb-4">
                 
-                <!-- Kilo Takip ve Gelişim Grafiği Paneli -->
+                fitness
                 <div class="card shadow-sm border-0 mb-4 bg-white">
                     <div class="card-header bg-primary text-white fw-bold d-flex justify-content-between align-items-center">
                         <span>📈 Fiziksel Gelişim & Kilo Takibi</span>
@@ -159,7 +159,7 @@
                     </div>
                 </div>
 
-                <!-- Chat Paneli -->
+                fitness
                 <div class="card shadow-sm border-0 mb-4 bg-white">
                     <div class="card-header bg-warning text-dark fw-bold d-flex justify-content-between align-items-center">
                         <span>📞 Antrenör ile Sohbet</span>
@@ -205,7 +205,7 @@
                     </div>
                 </div>
 
-                <!-- Fotoğraf Yükleme Paneli -->
+                fitness
                 <div class="card shadow-sm border-0 mb-4 bg-white">
                     <div class="card-header bg-dark text-white fw-bold">
                         📸 Haftalık Form Kontrolü
@@ -233,7 +233,7 @@
         </div>
     </div>
 
-    <!-- Chart.js Grafik Çizim Kodu -->
+    fitness
     {% if kilo_degerler %}
     <script>
         const ctx = document.getElementById('kiloGrafik').getContext('2d');

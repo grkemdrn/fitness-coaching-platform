@@ -13,14 +13,14 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>🏋️‍♂️ Antrenör Paneli</h2>
         <div class="d-flex gap-2">
-            <!-- Çöp Kutusu Butonunu Buraya Ekledik -->
+            fitness
             <a href="{{ url_for('cop_kutusu') }}" class="btn btn-outline-danger fw-bold">🗑️ Çöp Kutusu</a>
 
             <a href="{{ url_for('logout') }}" class="btn btn-dark">Çıkış Yap</a>
         </div>
     </div>
 
-    <!-- Üst Menü (Navbar) -->
+    fitness
     <nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
         <div class="container">
             <span class="navbar-brand mb-0 h1 fw-bold">Fitness Koçluk Paneli</span>
@@ -32,7 +32,7 @@
     </nav>
 
     <div class="container">
-        <!-- Bildiri Mesajları -->
+        fitness
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
@@ -48,14 +48,14 @@
                         📋 Kayıtlı Öğrencilerim
                     </div>
                     <div class="card-body p-0">
-                        <!-- Öğrenci Listesi -->
+                        fitness
                         <ul class="list-group list-group-flush">
                             {% if ogrenciler %}
                             {% for ogrenci in ogrenciler %}
                             <li class="list-group-item d-flex justify-content-between align-items-center p-3">
                                 <span class="fw-bold fs-5">👤 {{ ogrenci.kullanici_adi }}</span>
 
-                                <!-- Yeni Butonlarımızın Olduğu Kısım -->
+                                fitness
                                 <div class="d-flex align-items-center gap-2">
                                     <a href="{{ url_for('haftalik_plan', ogrenci_id=ogrenci.id) }}"
                                         class="btn btn-sm btn-warning fw-bold text-dark">Haftalık Plan Yaz</a>

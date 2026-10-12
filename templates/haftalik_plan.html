@@ -25,7 +25,7 @@
                     </div>
                     <div class="card-body bg-light">
                         
-                        <!-- Listeleme Bölümü -->
+                        fitness
                         <div class="mb-3">
                             <h6 class="text-primary fw-bold">🏋️‍♂️ Antrenmanlar:</h6>
                             <ul class="list-unstyled mb-2">
@@ -35,9 +35,9 @@
                                         {{ a[1] }} {% if a[6] %} ✅{% endif %} ({{ a[2] }}x{{ a[3] }}) {% if a[4] %} | Kardiyo: {{ a[4] }}{% endif %}
                                     </div>
                                     <div class="d-flex gap-1 ms-2">
-                                        <!-- Düzenle Butonu -->
+                                        fitness
                                         <button type="button" class="btn btn-sm btn-warning p-1" data-bs-toggle="modal" data-bs-target="#editAntModal{{ a[5] }}">✏️</button>
-                                        <!-- Sil Butonu -->
+                                        fitness
                                         <form action="{{ url_for('plan_sil', tip='antrenman', item_id=a[5]) }}" method="POST" class="m-0">
                                             <input type="hidden" name="ogrenci_id" value="{{ ogrenci_id }}">
                                             <button type="submit" class="btn btn-sm btn-danger p-1" onclick="return confirm('Bu antrenmanı silmek istediğine emin misin?');">🗑️</button>
@@ -45,7 +45,7 @@
                                     </div>
                                 </li>
 
-                                <!-- Antrenman Düzenleme Modalı -->
+                                fitness
                                 <div class="modal fade" id="editAntModal{{ a[5] }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -75,13 +75,13 @@
                             
                             <h6 class="text-success fw-bold mt-3">🥗 Beslenme Programı:</h6>
                             
-                            <!-- GÜNLÜK MAKRO TOPLAMA SAYAÇLARI -->
+                            fitness
                             {% set ns = namespace(kalori=0, protein=0, yag=0, karb=0, ogun_sayisi=0) %}
                             
                             <ul class="list-unstyled mb-2">
                                 {% for d in diyetler %}{% if d[0] == g %}
                                 
-                                <!-- Her öğünün değerlerini günlük toplama ekle -->
+                                fitness
                                 {% set ns.kalori = ns.kalori + (d[3] or 0) %}
                                 {% set ns.protein = ns.protein + (d[4] or 0) %}
                                 {% set ns.yag = ns.yag + (d[5] or 0) %}
@@ -94,9 +94,9 @@
                                         <small class="text-light">{{ d[3] }} kcal | {{ d[4] }}g Protein | {{ d[5] }}g Yağ | {{ d[6] }}g Karb</small>
                                     </div>
                                     <div class="d-flex gap-1 ms-2 align-items-start">
-                                        <!-- Düzenle Butonu -->
+                                        fitness
                                         <button type="button" class="btn btn-sm btn-warning p-1" data-bs-toggle="modal" data-bs-target="#editDiyetModal{{ d[7] }}">✏️</button>
-                                        <!-- Sil Butonu -->
+                                        fitness
                                         <form action="{{ url_for('plan_sil', tip='diyet', item_id=d[7]) }}" method="POST" class="m-0">
                                             <input type="hidden" name="ogrenci_id" value="{{ ogrenci_id }}">
                                             <button type="submit" class="btn btn-sm btn-danger p-1" onclick="return confirm('Bu öğünü silmek istediğine emin misin?');">🗑️</button>
@@ -104,7 +104,7 @@
                                     </div>
                                 </li>
 
-                                <!-- Diyet Düzenleme Modalı -->
+                                fitness
                                 <div class="modal fade" id="editDiyetModal{{ d[7] }}" tabindex="-1" aria-hidden="true">
                                     <div class="modal-dialog">
                                         <div class="modal-content">
@@ -134,7 +134,7 @@
                                 {% endif %}{% endfor %}
                             </ul>
 
-                            <!-- GÜNLÜK TOPLAM MAKRO ÖZET ÇUBUĞU -->
+                            fitness
                             {% if ns.ogun_sayisi > 0 %}
                             <div class="p-2 bg-white border border-success border-opacity-50 rounded shadow-sm d-flex justify-content-between align-items-center flex-wrap small">
                                 <span class="fw-bold text-dark">📊 Günlük Toplam:</span>
@@ -149,9 +149,9 @@
                         </div>
 
                         <hr>
-                        <!-- Hızlı Ekleme Formları (Burada değişiklik yok, aynen kalıyor) -->
+                        fitness
                         <div class="accordion" id="acc-{{ g }}">
-                            <!-- Antrenman Ekle -->
+                            fitness
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#ant-{{ g }}">
@@ -174,7 +174,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Diyet Ekle (AI DESTEKLİ) -->
+                            fitness
                             <div class="accordion-item">
                                 <h2 class="accordion-header">
                                     <button class="accordion-button collapsed py-2 text-success fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#diy-{{ g }}">
